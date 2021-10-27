@@ -1,26 +1,20 @@
-import { Injectable } from '@nestjs/common';
-import { CreateCustomerDto } from './dto/create-customer.dto';
-import { UpdateCustomerDto } from './dto/update-customer.dto';
+import { Injectable } from "@nestjs/common";
+import { CreateCustomerDto } from "./dto/create-customer.dto";
+import { Sequelize } from "sequelize-typescript";
+import { QueryTypes } from "sequelize";
 
 @Injectable()
 export class CustomerService {
+  constructor(
+    private connection: Sequelize
+  ) {
+  }
+
   create(createCustomerDto: CreateCustomerDto) {
-    return 'This action adds a new customer';
+    return this.connection.query(`insert into customer (name, createdBy) values ('${createCustomerDto.name}', '${createCustomerDto.createdBy}')`, {raw:true, type:QueryTypes.INSERT});
   }
 
   findAll() {
-    return `This action returns all customer`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} customer`;
-  }
-
-  update(id: number, updateCustomerDto: UpdateCustomerDto) {
-    return `This action updates a #${id} customer`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} customer`;
+    return this.connection.query(`select * from customer`, {raw:true, type:QueryTypes.SELECT});
   }
 }

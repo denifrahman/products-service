@@ -1,18 +1,17 @@
-import { Column, Model, Sequelize, Table } from "sequelize-typescript";
+import { BelongsTo, Column, ForeignKey, Model, Sequelize, Table } from "sequelize-typescript";
+import { Product } from "./product.entity";
 
-@Table({ tableName: "product", createdAt: false, updatedAt: false })
-export class Product extends Model {
+@Table({ tableName: "product_stock", createdAt: false, updatedAt: false })
+export class ProductStock extends Model {
   @Column
-  sku: number;
-  @Column
-  name: string;
-  @Column
-  image: string;
-  @Column
-  description: string;
+  qty: number;
+  @Column({ field: "product_id" })
+  @ForeignKey(() => Product)
+  productId: number;
+  @BelongsTo(() => Product)
+  product: Product;
   @Column({ defaultValue: Sequelize.literal("NOW()") })
   createdAt: Date;
-  @Column({ defaultValue: Sequelize.literal("NOW()") })
   @Column
   createdBy: string;
 }

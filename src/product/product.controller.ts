@@ -1,34 +1,44 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { ProductService } from './product.service';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
+import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, HttpStatus } from "@nestjs/common";
+import { ProductService } from "./product.service";
+import { CreateProductDto } from "./dto/create-product.dto";
+import { UpdateProductDto } from "./dto/update-product.dto";
+import { Ctx, MessagePattern, Payload, RmqContext } from "@nestjs/microservices";
+import { ResponseJson } from "../utils/response";
 
-@Controller('product')
+@Controller("product")
 export class ProductController {
-  constructor(private readonly productService: ProductService) {}
-
-  @Post()
-  create(@Body() createProductDto: CreateProductDto) {
-    return this.productService.create(createProductDto);
+  constructor(private readonly productService: ProductService) {
   }
 
-  @Get()
-  findAll() {
-    return this.productService.findAll();
+  @MessagePattern("CREATE_PRODUCT")
+  async create(@Payload() createProductDto: CreateProductDto, @Ctx() context: RmqContext) {
+    const channel = context.getChannelRef();
+    const originalMsg = context.getMessage();
+    try {
+      await this.productService.create(createProductDto);
+      let response = new ResponseJson();``
+      response.statusCode = HttpStatus.CREATED;
+      response.message = "OK";
+      channel.ack(originalMsg);
+      return response;
+    } catch (e) {
+      throw new BadRequestException(e);
+    }
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.productService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    return this.productService.update(+id, updateProductDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.productService.remove(+id);
+  @MessagePattern("FIND_ALL_PRODUCT")
+  async findAll(@Payload() data: string, @Ctx() context: RmqContext) {
+    const channel = context.getChannelRef();
+    const originalMsg = context.getMessage();
+    try {
+      let response = new ResponseJson();
+      response.data = await this.productService.findAll(data);
+      response.statusCode = HttpStatus.OK;
+      response.message = "OK";
+      channel.ack(originalMsg);
+      return response;
+    } catch (e) {
+      throw new BadRequestException(e);
+    }
   }
 }

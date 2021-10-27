@@ -1,35 +1,60 @@
-import { Controller } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
-import { ReportService } from './report.service';
-import { CreateReportDto } from './dto/create-report.dto';
-import { UpdateReportDto } from './dto/update-report.dto';
+import { BadRequestException, Controller, HttpStatus } from "@nestjs/common";
+import { Ctx, MessagePattern, Payload, RmqContext } from "@nestjs/microservices";
+import { ReportService } from "./report.service";
+import { CreateReportDto } from "./dto/create-report.dto";
+import { UpdateReportDto } from "./dto/update-report.dto";
+import { ResponseJson } from "../utils/response";
 
 @Controller()
 export class ReportController {
-  constructor(private readonly reportService: ReportService) {}
-
-  @MessagePattern('createReport')
-  create(@Payload() createReportDto: CreateReportDto) {
-    return this.reportService.create(createReportDto);
+  constructor(private readonly reportService: ReportService) {
   }
 
-  @MessagePattern('findAllReport')
-  findAll() {
-    return this.reportService.findAll();
+  @MessagePattern("margin")
+  margin(@Payload() type: string, @Ctx() context: RmqContext) {
+    const channel = context.getChannelRef();
+    const originalMsg = context.getMessage();
+    try {
+      let response = new ResponseJson();
+      response.statusCode = HttpStatus.CREATED;
+      response.message = "OK";
+      response.data = this.reportService.margin(type);
+      channel.ack(originalMsg);
+      return response;
+    } catch (e) {
+      throw new BadRequestException(e);
+    }
   }
 
-  @MessagePattern('findOneReport')
-  findOne(@Payload() id: number) {
-    return this.reportService.findOne(id);
+  @MessagePattern("transaction")
+  async transaction(@Payload() type: string, @Ctx() context: RmqContext) {
+    const channel = context.getChannelRef();
+    const originalMsg = context.getMessage();
+    try {
+      let response = new ResponseJson();
+      response.statusCode = HttpStatus.CREATED;
+      response.message = "OK";
+      response.data = await this.reportService.transaction(type);
+      channel.ack(originalMsg);
+      return response;
+    } catch (e) {
+      throw new BadRequestException(e);
+    }
   }
 
-  @MessagePattern('updateReport')
-  update(@Payload() updateReportDto: UpdateReportDto) {
-    return this.reportService.update(updateReportDto.id, updateReportDto);
-  }
-
-  @MessagePattern('removeReport')
-  remove(@Payload() id: number) {
-    return this.reportService.remove(id);
+  @MessagePattern("customer")
+  async customer(@Payload() type: string, @Ctx() context: RmqContext) {
+    const channel = context.getChannelRef();
+    const originalMsg = context.getMessage();
+    try {
+      let response = new ResponseJson();
+      response.statusCode = HttpStatus.CREATED;
+      response.message = "OK";
+      response.data = await this.reportService.customer(type);
+      channel.ack(originalMsg);
+      return response;
+    } catch (e) {
+      throw new BadRequestException(e);
+    }
   }
 }
