@@ -1,5 +1,5 @@
 import { BadRequestException, Controller, HttpStatus } from "@nestjs/common";
-import { Ctx, MessagePattern, Payload, RmqContext } from "@nestjs/microservices";
+import { Ctx, EventPattern, MessagePattern, Payload, RmqContext } from "@nestjs/microservices";
 import { TransactionService } from "./transaction.service";
 import { CreateTransactionDto } from "./dto/create-transaction.dto";
 import { UpdateTransactionDto } from "./dto/update-transaction.dto";
@@ -10,7 +10,7 @@ export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {
   }
 
-  @MessagePattern("createTransaction")
+  @EventPattern("createTransaction")
   async create(@Payload() createTransactionDto: CreateTransactionDto, @Ctx() context: RmqContext) {
     const channel = context.getChannelRef();
     const originalMsg = context.getMessage();

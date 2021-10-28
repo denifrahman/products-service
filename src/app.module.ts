@@ -15,7 +15,7 @@ import { ReportModule } from './report/report.module';
       host: "localhost",
       port: 3307,
       username: "root",
-      password: "root",
+      password: "denifa2412@",
       database: "pre-test",
       sync: {
         alter: true
