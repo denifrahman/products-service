@@ -9,6 +9,8 @@ this product service, include create customer, create product, create purchase, 
 first install rabbitmq use docker
 https://hub.docker.com/_/rabbitmq
 
+this project all query use manual sql low level, but i use sync to create table from entity 
+
 ## Installation
 
 ```bash
